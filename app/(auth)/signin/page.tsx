@@ -34,7 +34,8 @@ const SignInPage = () => {
             const res = await axios.post("http://localhost:5001/api/auth/signin" , {
                 username , 
                 password
-            })
+            }, { withCredentials: true })
+           
 
             console.log("Đăng nhập thành công")
             toast.success("Đăng nhập thành công")
