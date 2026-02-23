@@ -10,6 +10,7 @@ import ChatWindowLayout from '../chat/ChatWindowLayout'
 import { Conversation } from "@/lib/types/chat"
 import { User } from "@/lib/types/user"
 import { useChatStore } from "@/store/useChatStore"
+import ChatWindowSwitcher from "../chat/ChatWindowSwitcher"
 
 const ChatAppPage = () => {
 
@@ -59,11 +60,16 @@ const ChatAppPage = () => {
         user={user}
       />
 )}
-      {currentUserId && conversations && conversations?.length > 0 && 
+
+        <div className="flex-1 flex flex-col min-h-0">
+        <ChatWindowSwitcher />
+      </div>
+
+      {/* {currentUserId && conversations && conversations?.length > 0 && 
       <div className='flex h-screen w-full p-2 ml-10'>
         <ChatWindowLayout/>
       </div>
-}
+      } */}
     </SidebarProvider>
   )
 }

@@ -1,8 +1,17 @@
-import React from 'react'
+"use client"
+
+import { useChatStore } from "@/store/useChatStore"
+import MessageCard from "./MessageCard"
 
 const MainWindowChat = () => {
+  const activeConversationId = useChatStore(s => s.activeConversationId)
+
+  if (!activeConversationId) return null
+
   return (
-    <div>MainWindowChat</div>
+    <div className="flex-1 bg-gray-50 overflow-y-auto p-4">
+      <MessageCard />
+    </div>
   )
 }
 

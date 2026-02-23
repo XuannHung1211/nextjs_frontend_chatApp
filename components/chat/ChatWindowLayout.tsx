@@ -1,25 +1,15 @@
 "use client"
 
-import NavbarWindowChat from './NavbarWindowChat'
-import MainWindowChat from './MainWindowChat'
-import FooterWindowChat from './FooterWindowChat'
-import { useChatStore } from '@/store/useChatStore'
+import NavbarWindowChat from "./NavbarWindowChat"
+import MainWindowChat from "./MainWindowChat"
+import FooterWindowChat from "./FooterWindowChat"
 
 const ChatWindowLayout = () => {
-
-  const { selectedConversation, currentUserId } = useChatStore()
-
-  if (!selectedConversation || !currentUserId) return null
-
   return (
     <div className="flex flex-col h-full">
-
       <NavbarWindowChat />
-
       <MainWindowChat />
-
       <FooterWindowChat />
-
     </div>
   )
 }
