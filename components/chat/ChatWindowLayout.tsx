@@ -6,11 +6,9 @@ import FooterWindowChat from "./FooterWindowChat"
 
 const ChatWindowLayout = () => {
   return (
-    <div className="flex flex-col h-full">
-      <NavbarWindowChat />
+    
       <MainWindowChat />
-      <FooterWindowChat />
-    </div>
+  
   )
 }
 

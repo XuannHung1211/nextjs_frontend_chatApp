@@ -1,28 +1,24 @@
-import { MessageCircleDashed } from "lucide-react"
+'use client';
 
-const EmptyChatState = () => {
+import { MessageCircle, Lightbulb, Heart, Zap } from 'lucide-react';
+
+export function EmptyChatState() {
+  
+
   return (
-    <div className="flex h-full items-center justify-center bg-gray-50">
-      <div className="flex flex-col items-center gap-6 text-center">
-
-        <div className="w-20 h-20 flex items-center justify-center rounded-full 
-                        bg-gray-100 text-gray-400">
-          <MessageCircleDashed size={36} />
+    <div className="flex flex-col items-center justify-center gap-8 px-4 py-12 text-center">
+      <div className="space-y-3">
+        <div className="flex justify-center">
+          <div className="rounded-full bg-accent/10 p-4">
+            <MessageCircle className="h-12 w-12 text-primary" />
+          </div>
         </div>
-
-        <div className="space-y-1">
-          <h2 className="text-lg font-medium text-gray-700">
-            Chọn một cuộc trò chuyện
-          </h2>
-
-          <p className="text-sm text-gray-400 max-w-xs">
-            Bắt đầu kết nối và trò chuyện với mọi người
-          </p>
-        </div>
-
+        <h1 className="text-3xl font-bold text-foreground">Start a Conversation</h1>
+        <p className="text-base text-muted-foreground">
+          Pick a suggestion below or type your own message to get started
+        </p>
       </div>
-    </div>
-  )
-}
 
-export default EmptyChatState
+    </div>
+  );
+}

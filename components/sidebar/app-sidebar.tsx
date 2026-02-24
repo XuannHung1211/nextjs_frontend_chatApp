@@ -11,6 +11,9 @@ import { NavUser } from "./nav-user"
 
 import { Conversation } from "@/lib/types/chat"
 import { User } from "@/lib/types/user"
+import { Button } from "../ui/button"
+import { useSocketStore } from "@/store/useSocketStore"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion"
 
 interface Props {
   conversations: Conversation[]
@@ -24,68 +27,54 @@ export function AppSidebar({
   user
 }: Props) {
 
+
+
+
   return (
-    <aside className="h-screen w-72 border-r flex flex-col bg-white">
+    <aside className="w-full  flex flex-col bg-white">
 
-      {/* HEADER */}
-      <div className="border-b px-4 py-3">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-black text-white">
-            <Command className="w-4 h-4" />
-          </div>
 
-          <div className="leading-tight">
-            <p className="text-sm font-medium">ChatApp</p>
-            <p className="text-xs text-gray-400">Talk with friends</p>
-          </div>
-        </div>
-      </div>
 
       {/* CONTENT */}
       <div className="flex-1 overflow-hidden flex flex-col px-2 py-3 gap-4">
-
-
-
-        <div className="flex flex-col w-full overflow-y-auto scrollbar-thin">
-          {/* GROUP */}
-          <div>
-            <div className="flex items-center justify-between px-2 mb-2">
-              <h3 className="text-xs font-semibold text-gray-400 uppercase">
-                Group Chats
-              </h3>
-              <CreateNewGroup />
+      <Accordion type="multiple" defaultValue={["item-1"]}>
+        <AccordionItem value="item-1"> 
+          <AccordionTrigger>
+            <div className="flex items-center justify-between w-full px-3">
+               GROUP CHAT 
+               <CreateNewGroup />
             </div>
+          
+            </AccordionTrigger> 
+          <AccordionContent>
 
-            <div className="space-y-1">
-              <ChatGroupList />
+            <ChatGroupList />
+
+          </AccordionContent>
+        </AccordionItem>
+
+
+         <AccordionItem value="item-2">
+          <AccordionTrigger>   
+            <div className="flex items-center justify-between w-full px-3">
+               DIRECT CHAT 
+               <CreateDirectChat />
             </div>
-          </div>
+           </AccordionTrigger>
+           
+          <AccordionContent>
 
-          <div className="h-px bg-gray-200 my-3" />
+             <ChatDirectList />
+             
+          </AccordionContent>
+        </AccordionItem>
 
-          {/* DIRECT */}
-          <div>
-            <div className="flex items-center justify-between px-2 mb-2">
-              <h3 className="text-xs font-semibold text-gray-400 uppercase">
-                Direct Messages
-              </h3>
-              <CreateDirectChat />
-            </div>
 
-            <div className="space-y-1">
-              <ChatDirectList />
-            </div>
-          </div>
-
-        </div>
+      </Accordion>
 
       </div>
 
-      {/* FOOTER */}
-      <div className="border-t h-14 px-3 flex items-center">
-        <NavUser user={user} />
-      </div>
-
+     
     </aside>
   )
 }

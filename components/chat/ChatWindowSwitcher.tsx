@@ -2,7 +2,8 @@
 
 import { useChatStore } from "@/store/useChatStore"
 import ChatWindowLayout from "./ChatWindowLayout"
-import EmptyChatState from "./EmptyChatState"
+import { EmptyChatState } from "./EmptyChatState"
+
 
 const ChatWindowSwitcher = () => {
   const activeConversationId = useChatStore(s => s.activeConversationId)

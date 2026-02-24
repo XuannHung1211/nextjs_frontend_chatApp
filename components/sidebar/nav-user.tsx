@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { User } from "@/lib/types/user"
 import { useEffect, useState } from "react"
 import { useChatStore } from "@/store/useChatStore"
+import { useUserStore } from "@/store/useUserStore"
 
 interface Props {
   user: User
@@ -16,8 +17,9 @@ export function NavUser({ user : initialUser }: Props) {
   const {setCurrentUserId} = useChatStore()
 
   const router = useRouter()
-
-  const [user , setUser] = useState<User | null>(initialUser) 
+  
+ 
+  const {setUser , user} = useUserStore()
 
 
   const handleLogout = async () => {

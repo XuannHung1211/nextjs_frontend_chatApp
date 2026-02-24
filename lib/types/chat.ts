@@ -54,4 +54,6 @@ export interface Message {
   updatedAt?: string | null;
   createdAt: string;
   isOwn?: boolean;
+  senderInfor?:any;
+  displayName?:string
 }
