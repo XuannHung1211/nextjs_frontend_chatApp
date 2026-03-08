@@ -3,11 +3,9 @@
 import axios from "axios"
 import { useEffect, useState } from "react"
 
-import { SidebarProvider } from '../ui/sidebar'
-import { AppSidebar } from '../sidebar/app-sidebar'
-import ChatWindowLayout from '../chat/ChatWindowLayout'
+import { SidebarProvider } from "../ui/sidebar"
+import { AppSidebar } from "../sidebar/app-sidebar"
 
-import { Conversation } from "@/lib/types/chat"
 import { User } from "@/lib/types/user"
 import { useChatStore } from "@/store/useChatStore"
 import ChatWindowSwitcher from "../chat/ChatWindowSwitcher"
@@ -15,24 +13,35 @@ import SocketProvider from "@/provider/SocketProvider"
 import { SmartLayout } from "../SmartLayout"
 import FooterWindowChat from "../chat/FooterWindowChat"
 import NavbarWindowChat from "../chat/NavbarWindowChat"
+
 import { Bell, Command } from "lucide-react"
 import { NavUser } from "../sidebar/nav-user"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { Button } from "../ui/button"
 import { toast } from "sonner"
-import { useSocketStore } from "@/store/useSocketStore"
+
 import { useSocketMessage } from "@/hooks/useSocketMessage"
+import { useSocketFriend } from "@/hooks/useSocketFriend"
+import { useFriendStore } from "@/store/useFriendStore"
+import { useSocketStore } from "@/store/useSocketStore"
 
 
 const ChatAppPage = () => {
 
-
   const [user, setUser] = useState<User | null>(null)
-  const [listRequestFriend , setListRequestFriend] = useState([])
   const [loading, setLoading] = useState(true)
-  const { conversations, currentUserId, setConversations, setCurrentUserId , addConversation } = useChatStore()
+
+  const { conversations, setConversations, setCurrentUserId } = useChatStore()
+
+  const incomingRequests = useFriendStore(s => s.incomingRequests)
+  const setIncomingRequests = useFriendStore(s => s.setIncomingRequests)
+  const removeIncomingRequest = useFriendStore(s => s.removeIncomingRequest)
+  
+  const socket = useSocketStore(s => s.socket);
 
   useSocketMessage()
+  useSocketFriend()
+
 
   useEffect(() => {
 
@@ -59,103 +68,113 @@ const ChatAppPage = () => {
 
   }, [])
 
+
   const fetchListRequestAddFriend = async () => {
+
     try {
-        const res = await axios.get("http://localhost:5001/api/friend/request" , {withCredentials : true})
-        if(res.status === 200 || res.status === 201) {
-          setListRequestFriend(res.data)
-          console.log(res.data)
-        }
-        
+
+      const res = await axios.get(
+        "http://localhost:5001/api/friend/request",
+        { withCredentials: true }
+      )
+
+      if (res.status === 200) {
+        setIncomingRequests(res.data)
+      }
+
+      
+
     } catch (error) {
-      console.log("Lỗi lấy ds kết bạn" , error)
+      console.log("Lỗi lấy ds kết bạn", error)
     }
+
   }
 
   useEffect(() => {
-
     fetchListRequestAddFriend()
-    
+  }, [])
 
-  } , [])
 
- const handleAcceptFriendRequest = async (requestId:string) => {
+const handleAcceptFriendRequest = async (requestId: string) => {
   try {
-    console.log("aloo")
-    console.log(requestId ,"rqId")
-    const res = await axios.post(`http://localhost:5001/api/friend/request/${requestId}/accept` , {} ,
-      {withCredentials:true}
-    )
-
-    toast.success("Kết bạn thành công!")
-    console.log("friend rq..." ,requestId)
-    
-    
-    if(res.status === 200 || res.status === 201){
-      const newList = await axios.get("http://localhost:5001/api/conversation" , {withCredentials:true})
-      setConversations(newList.data?.conversations)
-    }
-    
-    console.log(listRequestFriend , "list rq fr")
-    setListRequestFriend(prev => 
-      prev.filter((r:any) => r._id !== requestId)
-    )
-    
-
-
-  } catch (error) {
-    toast.error("Lỗi accept")
-    console.log(error)
-  }
-}
-
-   const handleDeclineFriendRequest = async (requestId: string) => {
-  try {
-    await axios.post(
-      `http://localhost:5001/api/friend/request/${requestId}/decline`,
+    const res = await axios.post(
+      `http://localhost:5001/api/friend/request/${requestId}/accept`,
       {},
       { withCredentials: true }
-    )
+    );
 
-    toast.success("Đã từ chối lời mời kết bạn")
+    toast.success("Kết bạn thành công!");
+    
+    // 1. Xóa khỏi danh sách chờ của mình
+    removeIncomingRequest(requestId);
 
-    // Remove khỏi danh sách request
-    setListRequestFriend(prev =>
-      prev.filter((req:any) => req._id !== requestId)
-    )
+    // 2. EMIT SOCKET: Báo cho server để server báo cho người kia
+    // Giả sử API trả về thông tin người gửi là res.data.fromUserId
+    if (socket) {
+      socket.emit("accept-friend-request", { 
+        requestId, 
+        fromUserId: res.data.fromUserId, // Bạn cần đảm bảo API trả về ID này
+        friend: res.data.newFriend 
+      });
+    }
+
+    // 3. Cập nhật danh sách chat
+    const newList = await axios.get("http://localhost:5001/api/conversation", { withCredentials: true });
+    setConversations(newList.data?.conversations);
 
   } catch (error) {
-    toast.error("Từ chối lời mời thất bại")
-    console.log(error)
+    toast.error("Lỗi accept");
   }
 }
 
+  const handleDeclineFriendRequest = async (requestId: string) => {
+
+    try {
+
+      await axios.post(
+        `http://localhost:5001/api/friend/request/${requestId}/decline`,
+        {},
+        { withCredentials: true }
+      )
+
+      toast.success("Đã từ chối lời mời kết bạn")
+
+      removeIncomingRequest(requestId)
+
+    } catch (error) {
+      toast.error("Từ chối lời mời thất bại")
+      console.log(error)
+    }
+
+  }
 
   if (loading || !user) return null
 
-
-
   return (
-    <SocketProvider>
 
+      <>
+      
       <SmartLayout direction="horizontal" className="h-screen">
 
-        {/* Conversation List */}
-        <SmartLayout.Header initialSize={450}
-              minSnapSize={450}
-              resizable
-              collapsible
-              persistKey="chat-sidebar1"
-              className="border-r bg-muted"
-              resizableBarClass={(props) =>
-                props + "bg-transparent! hover:bg-transparent! transition-colors "
-              }
-            >
+        {/* SIDEBAR */}
+        <SmartLayout.Header
+          initialSize={450}
+          minSnapSize={450}
+          resizable
+          collapsible
+          persistKey="chat-sidebar1"
+          className="border-r bg-muted"
+        >
+
           <SmartLayout>
-            <SmartLayout.Footer >
-              {/* HEADER */}
+
+            {/* HEADER */}
+            <SmartLayout.Footer>
+
               <div className="border-b px-4 py-3 h-16 flex items-center justify-between">
+
                 <div className="flex items-center gap-2">
+
                   <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-black text-white">
                     <Command className="w-4 h-4" />
                   </div>
@@ -164,75 +183,94 @@ const ChatAppPage = () => {
                     <p className="text-sm font-medium">ChatApp</p>
                     <p className="text-xs text-gray-400">Talk with friends</p>
                   </div>
+
                 </div>
 
+                {/* FRIEND REQUEST */}
                 <Popover>
-                  <PopoverTrigger asChild><Button size="icon" variant="outline" className="hover:bg-white!"> <Bell/> </Button></PopoverTrigger>
-                  <PopoverContent className="overflow-y-scroll max-h-72 scrollbar-none min-w-[450px] gap-3">
-                  {
-                    listRequestFriend?.length > 0 ? listRequestFriend.map((rq : any) => (
-                      <div 
-                      key={rq._id}
-                      className="h-24 py-2 px-3 border border-gray-200 rounded-md flex justify-between gap-2">
-                        <div className="flex flex-col gap-0.5 ">
-                          <span className="italic text-sm font-medium text-gray-400">FROM:&nbsp;{
-                            (rq?.from?.displayName &&  rq?.from?.displayName?.trim() !== "") ? rq.from.displayName : "No name"
-                            }&nbsp;-&nbsp;({
-                            (rq?.from?.username &&  rq?.from?.username?.trim() !== "") ? rq.from.username : "No name"
-                            })</span>
-                          <span className="text-base font-semibold text-gray-800">{rq?.message}</span>
+
+                  <PopoverTrigger asChild>
+                    <Button size="icon" variant="outline">
+                      <Bell />
+                    </Button>
+                  </PopoverTrigger>
+
+                  <PopoverContent className="overflow-y-scroll max-h-72 min-w-[450px]">
+
+                    {incomingRequests.length > 0 ? (
+
+                      incomingRequests.map((rq: any) => (
+
+                        <div
+                          key={rq._id}
+                          className="h-24 py-2 px-3 border rounded-md flex justify-between gap-2"
+                        >
+
+                          <div className="flex flex-col gap-1">
+
+                            <span className="text-sm text-gray-400 italic">
+                              FROM: {rq?.from?.displayName || "No name"} (@{rq?.from?.username})
+                            </span>
+
+                            <span className="text-base font-semibold">
+                              {rq?.message}
+                            </span>
+
+                          </div>
+
+                          <div className="flex gap-2">
+
+                            <Button
+                              size="sm"
+                              onClick={() => handleAcceptFriendRequest(rq._id)}
+                            >
+                              Accept
+                            </Button>
+
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDeclineFriendRequest(rq._id)}
+                            >
+                              Decline
+                            </Button>
+
+                          </div>
+
                         </div>
-                        
 
-                        <div className="flex gap-2 ">
-                          <Button 
-                        size="sm" 
-                        onClick={() => handleAcceptFriendRequest(rq._id)}>
-                        Accept
-                        </Button>
+                      ))
 
-                        <Button 
-                        size="sm"
-                        onClick={() => handleDeclineFriendRequest(rq._id)}>
-                        Decline
-                        </Button>
-                        </div>
-                        
+                    ) : (
 
+                      <div className="text-sm h-16 flex items-center justify-center text-gray-400">
+                        No request found
                       </div>
-                    )) : <div className="text-sm h-16 text-center w-full text-gray-400">No request found.</div>
-                  }
-                  </PopoverContent>
-                </Popover>
-              </div>
 
+                    )}
+
+                  </PopoverContent>
+
+                </Popover>
+
+              </div>
 
             </SmartLayout.Footer>
-            <SmartLayout.Body
-              initialSize={450}
-              minSnapSize={450}
-              resizable
-              collapsible
-              persistKey="chat-sidebar"
-              className="border-r bg-muted"
-              resizableBarClass={(props) =>
-                props + "bg-transparent! hover:bg-transparent! transition-colors "
-              }
-              scroll={{ x: false, y: true }}>
 
-              <div className="w-full">
-                {user && (
-                  <AppSidebar
-                    conversations={conversations}
-                    currentUserId={user._id}
-                    user={user}
-                  />
-                )}
-              </div>
+            {/* CONVERSATION LIST */}
+            <SmartLayout.Body scroll={{ y: true }}>
+
+              <AppSidebar
+                conversations={conversations}
+                currentUserId={user._id}
+                user={user}
+              />
 
             </SmartLayout.Body>
+
+            {/* FOOTER */}
             <SmartLayout.Footer>
-              {/* FOOTER */}
+
               <div className="border-t h-16 px-3 flex items-center">
                 <NavUser user={user} />
               </div>
@@ -241,20 +279,17 @@ const ChatAppPage = () => {
 
           </SmartLayout>
 
-
         </SmartLayout.Header>
 
-        {/* Chat Area */}
+        {/* CHAT AREA */}
         <SmartLayout direction="vertical">
 
           <SmartLayout.Footer className="h-16 border-b">
             <NavbarWindowChat />
           </SmartLayout.Footer>
 
-          <SmartLayout.Body scroll={{ x: false, y: true }}>
-            <div className="flex-1 flex flex-col min-h-0">
-              <ChatWindowSwitcher />
-            </div>
+          <SmartLayout.Body scroll={{ y: true }}>
+            <ChatWindowSwitcher />
           </SmartLayout.Body>
 
           <SmartLayout.Footer className="h-16 border-t">
@@ -264,18 +299,12 @@ const ChatAppPage = () => {
         </SmartLayout>
 
       </SmartLayout>
-      <SidebarProvider>
 
-        <></>
-        {/* {currentUserId && conversations && conversations?.length > 0 && 
-      <div className='flex h-screen w-full p-2 ml-10'>
-        <ChatWindowLayout/>
-      </div>
-      } */}
-      </SidebarProvider>
+      <SidebarProvider />
+    </>
 
-    </SocketProvider>
   )
+
 }
 
 export default ChatAppPage

@@ -2,7 +2,6 @@ import { create } from "zustand"
 import { Friend, FriendRequest } from "@/lib/types/user"
 
 interface FriendState {
-
   // ===== STATE =====
   friends: Friend[]
   incomingRequests: FriendRequest[]
@@ -29,7 +28,6 @@ interface FriendState {
 }
 
 export const useFriendStore = create<FriendState>((set, get) => ({
-
   // ===== INIT =====
   friends: [],
   incomingRequests: [],
@@ -43,9 +41,11 @@ export const useFriendStore = create<FriendState>((set, get) => ({
 
   // ===== FRIEND =====
   addFriend: (friend) =>
-    set((state) => ({
-      friends: [...state.friends, friend]
-    })),
+    set((state) => {
+      const isExisted = state.friends.some(f => f._id === friend._id);
+      if (isExisted) return state;
+      return { friends: [...state.friends, friend] };
+    }),
 
   removeFriend: (friendId) =>
     set((state) => ({
@@ -54,9 +54,11 @@ export const useFriendStore = create<FriendState>((set, get) => ({
 
   // ===== INCOMING =====
   addIncomingRequest: (request) =>
-    set((state) => ({
-      incomingRequests: [...state.incomingRequests, request]
-    })),
+    set((state) => {
+      const isExisted = state.incomingRequests.some(r => r._id === request._id);
+      if (isExisted) return state;
+      return { incomingRequests: [request, ...state.incomingRequests] };
+    }),
 
   removeIncomingRequest: (requestId) =>
     set((state) => ({
@@ -65,23 +67,32 @@ export const useFriendStore = create<FriendState>((set, get) => ({
 
   // ===== SENT =====
   addSentRequest: (request) =>
-    set((state) => ({
-      sentRequests: [...state.sentRequests, request]
-    })),
+    set((state) => {
+      const isExisted = state.sentRequests.some(r => r._id === request._id);
+      if (isExisted) return state;
+      return { sentRequests: [request, ...state.sentRequests] };
+    }),
 
   removeSentRequest: (requestId) =>
     set((state) => ({
       sentRequests: state.sentRequests.filter(r => r._id !== requestId)
     })),
 
-  // ===== CHECK =====
-  isFriend: (userId) =>
+  // ===== CHECK (Sửa lỗi TS tại đây) =====
+  isFriend: (userId: string) =>
     get().friends.some(f => f._id === userId),
 
-  hasSentRequest: (userId) =>
-    get().sentRequests.some(r => r.to?._id === userId),
+  hasSentRequest: (userId: string) =>
+    get().sentRequests.some(r => {
+      // Nếu r.to là object, lấy _id. Nếu là string, lấy chính nó.
+      const toId = typeof r.to === 'object' ? r.to?._id : r.to;
+      return toId === userId;
+    }),
 
-  hasIncomingRequest: (userId) =>
-    get().incomingRequests.some(r => r.from?._id === userId)
-
+  hasIncomingRequest: (userId: string) =>
+    get().incomingRequests.some(r => {
+      // Nếu r.from là object, lấy _id. Nếu là string, lấy chính nó.
+      const fromId = typeof r.from === 'object' ? r.from?._id : r.from;
+      return fromId === userId;
+    })
 }))
