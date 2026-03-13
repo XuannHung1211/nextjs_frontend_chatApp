@@ -1,103 +1,133 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import axios from "axios"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { User } from "@/lib/types/user"
-import { useEffect, useState } from "react"
 import { useChatStore } from "@/store/useChatStore"
 import { useUserStore } from "@/store/useUserStore"
+
+import { Settings, LogOut, UserPen } from "lucide-react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import EditProfileForm from "../form//EditProfileForm"
+import { toast } from "sonner"
 
 interface Props {
   user: User
 }
 
-export function NavUser({ user : initialUser }: Props) {
-
-  const {setCurrentUserId} = useChatStore()
-
+export function NavUser({ user: initialUser }: Props) {
+  const { setCurrentUserId } = useChatStore()
+  const { setUser, user } = useUserStore()
   const router = useRouter()
   
- 
-  const {setUser , user} = useUserStore()
-
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const BACKEND_URL = "http://localhost:5001"
 
   const handleLogout = async () => {
     try {
-
       await axios.post(
-        "http://localhost:5001/api/auth/signout",
+        `${BACKEND_URL}/api/auth/signout`,
         {},
         { withCredentials: true }
       )
-
+      toast.success("Đã đăng xuất")
       router.replace("/signin")
-
     } catch (err) {
-      console.log(err)
+      toast.error("Lỗi khi đăng xuất")
     }
   }
 
   useEffect(() => {
-
     const fetchUser = async () => {
       try {
-        const res  = await axios.get(`http://localhost:5001/api/users/me` , { withCredentials:true})
-        console.log(res.data)
-        console.log(res.data._id)
+        const res = await axios.get(
+          `${BACKEND_URL}/api/users/me`,
+          { withCredentials: true }
+        )
         setCurrentUserId(res.data._id)
-        
         setUser(res.data)
-    } catch (error) {
-      console.log("Lỗi fetch user detail ",error)
-
+      } catch (error) {
+        console.log("Fetch user detail error")
       }
     }
-
     fetchUser()
+  }, [])
 
-  } ,[])
+  if (!user) return null
 
-  if(!user) return null
+  const avatarSrc = user.avatarUrl?.startsWith("http") 
+    ? user.avatarUrl 
+    : `${BACKEND_URL}${user.avatarUrl}`
 
   return (
-    <div className="flex items-center justify-between w-full">
+    <>
+      <div className="flex items-center justify-between w-full p-2.5 border rounded-2xl bg-card shadow-sm hover:shadow-md transition-all border-border/50">
+        <div className="flex items-center gap-3 overflow-hidden">
+          <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-primary/10 bg-muted shrink-0 flex items-center justify-center shadow-sm">
+            {user.avatarUrl ? (
+              <img 
+                src={avatarSrc} 
+                alt="avatar" 
+                className="w-full h-full object-cover"
+                onError={(e) => (e.currentTarget.style.display = 'none')}
+              />
+            ) : null}
+            <span className="font-bold text-primary uppercase text-sm">
+              {user.displayName?.charAt(0)}
+            </span>
+          </div>
 
-      {/* User Info */}
-      <div className="flex items-center gap-2">
+          <div className="flex flex-col min-w-0">
+            <p className="text-sm font-bold truncate leading-tight text-foreground/90">
+              {user.displayName}
+            </p>
+            <p className="text-[11px] text-muted-foreground truncate font-medium mt-0.5">
+              @{user.username}
+            </p>
+          </div>
+        </div>
 
-        {/* Avatar */}
-        <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
-          {user.avatarUrl ? (
-            <img
-              src={user.avatarUrl}
-              alt="avatar"
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-xs">
-              {user.displayName?.charAt(0).toUpperCase()}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full hover:bg-muted">
+              <Settings className="w-4 h-4 text-muted-foreground" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-48 p-1.5 rounded-xl shadow-xl border-border/40" align="end" side="right">
+            <div className="flex flex-col gap-0.5">
+              <Button
+                variant="ghost"
+                className="justify-start gap-2.5 h-10 text-sm font-medium rounded-lg"
+                onClick={() => setIsEditModalOpen(true)}
+              >
+                <UserPen className="w-4 h-4 text-primary" />
+                Chỉnh sửa hồ sơ
+              </Button>
+              <div className="h-px bg-border/50 my-1 mx-1" />
+              <Button
+                variant="ghost"
+                className="justify-start gap-2.5 h-10 text-sm font-medium text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                onClick={handleLogout}
+              >
+                <LogOut className="w-4 h-4" />
+                Đăng xuất
+              </Button>
             </div>
-          )}
-        </div>
-
-        {/* Name */}
-        <div className="text-sm">
-          <p className="font-medium">
-            {user.displayName}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            @{user.username}
-          </p>
-        </div>
-
+          </PopoverContent>
+        </Popover>
       </div>
 
-      {/* Logout */}
-      <Button size="sm" onClick={handleLogout}>
-        Logout
-      </Button>
-
-    </div>
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="sm:max-w-[400px] rounded-3xl p-6">
+          <DialogHeader className="mb-2">
+            <DialogTitle className="text-xl font-bold tracking-tight">Hồ sơ của bạn</DialogTitle>
+          </DialogHeader>
+          <EditProfileForm onSuccess={() => setIsEditModalOpen(false)} />
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

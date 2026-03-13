@@ -4,7 +4,6 @@ import { create } from "zustand"
 interface UserStore {
     user: any | null
 
-
     setUser: (data: any) => void
 
 }
