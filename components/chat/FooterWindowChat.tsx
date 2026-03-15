@@ -2,24 +2,36 @@
 
 import { Smile, SendHorizonal } from "lucide-react"
 import { useChatStore } from "@/store/useChatStore"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import axios from "axios"
 import { useSocketStore } from "@/store/useSocketStore"
 import { useUserStore } from "@/store/useUserStore"
+import EmojiPicker, { Theme } from "emoji-picker-react"
 
 const FooterWindowChat = () => {
 
   const { activeConversationId, conversations, addMessage } = useChatStore()
   const { user } = useUserStore()
   const [content, setContent] = useState("")
+  const [showEmoji, setShowEmoji] = useState(false)
   const { socket } = useSocketStore()
+  const emojiPickerRef = useRef<HTMLDivElement>(null)
+
+  // Logic click outside để đóng bảng icon
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setShowEmoji(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   useEffect(() => {
-
     if (socket && activeConversationId) {
       socket.emit("join-conversation", activeConversationId)
     }
-
   }, [socket, activeConversationId])
 
   if (!activeConversationId) return null
@@ -80,19 +92,45 @@ const FooterWindowChat = () => {
     }
 
     setContent("")
+    setShowEmoji(false)
+  }
 
+  // Hàm chọn emoji
+  const onEmojiClick = (emojiData: any) => {
+    setContent((prev) => prev + emojiData.emoji)
   }
 
   return (
-    <div className="h-16 border-t bg-white px-4 flex items-center">
+    <div className="h-16 border-t bg-white px-4 flex items-center relative">
+      
+      {/* BẢNG ICON: Dùng fixed và z-[9999] để không bị cha che khuất */}
+      {showEmoji && (
+        <div 
+          ref={emojiPickerRef} 
+          className="fixed bottom-[70px] z-[9999] shadow-2xl ring-1 ring-black/5"
+        >
+          <EmojiPicker 
+            theme={Theme.LIGHT} 
+            onEmojiClick={onEmojiClick}
+            autoFocusSearch={false}
+            width={300}
+            height={400}
+          />
+        </div>
+      )}
+
       <div className="flex items-center w-full gap-2 bg-gray-100 rounded-full px-3 py-2">
 
-        <button className="text-gray-500 hover:text-gray-700">
+        <button 
+          type="button"
+          onClick={() => setShowEmoji(!showEmoji)}
+          className={`hover:text-gray-700 transition ${showEmoji ? "text-blue-500" : "text-gray-500"}`}
+        >
           <Smile size={22} />
         </button>
 
         <input
-          className="flex-1 bg-transparent outline-none px-2 text-sm"
+          className="flex-1 bg-transparent outline-none px-2 text-sm text-black"
           placeholder="Nhập tin nhắn..."
           value={content}
           onChange={(e) => setContent(e.target.value)}
