@@ -5,11 +5,9 @@ import axios from "axios"
 import { useMemo, useState } from "react"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { MoreHorizontal, Trash2, UserPlus, CheckCheck } from "lucide-react"
+import { MoreHorizontal, Trash2, UserPlus } from "lucide-react"
 import { toast } from "sonner"
-// Thêm hàm format của date-fns
-import { format, isToday, isYesterday, formatDistanceToNow } from "date-fns"
-import { vi } from "date-fns/locale" 
+import { format, isToday, isYesterday } from "date-fns"
 
 import {
   DropdownMenu,
@@ -33,24 +31,13 @@ const ChatCard = ({ conversationId }: { conversationId: string }) => {
   const [openAddMember, setOpenAddMember] = useState(false)
 
   if (!conversation) return null
-
   const isActive = activeConversationId === conversationId
 
-  // Logic xử lý format thời gian
   const formatTime = (dateString?: string) => {
     if (!dateString) return ""
     const date = new Date(dateString)
-    
-    // Nếu là hôm nay: 14:30
-    if (isToday(date)) {
-      return format(date, "HH:mm")
-    }
-    // Nếu là hôm qua: Hôm qua
-    if (isYesterday(date)) {
-      return "Hôm qua"
-    }
-    // Nếu trong tuần: Thứ 2, Thứ 3...
-    // Nếu lâu hơn: 15/03
+    if (isToday(date)) return format(date, "HH:mm")
+    if (isYesterday(date)) return "Hôm qua"
     return format(date, "dd/MM")
   }
 
@@ -65,7 +52,6 @@ const ChatCard = ({ conversationId }: { conversationId: string }) => {
       avatar: isGroup ? "/group.png" : (otherUser?.avatarUrl || "/user.png"),
       lastMsg: conversation?.lastMessage?.content || "Bắt đầu cuộc trò chuyện",
       unread: conversation?.unreadCounts?.[currentUserId || ""] || 0,
-      // Lấy thời gian từ tin nhắn cuối hoặc thời gian cập nhật cuộc hội thoại
       time: formatTime(conversation?.lastMessage?.createdAt || conversation?.updatedAt)
     }
   }, [conversation, currentUserId])
@@ -104,93 +90,99 @@ const ChatCard = ({ conversationId }: { conversationId: string }) => {
       <div
         onClick={handleClick}
         className={cn(
-          "group relative flex items-center gap-4 p-3.5 cursor-pointer transition-all duration-200 w-full mb-1 border-l-[3px]",
+          "group relative flex items-center gap-3 p-3 cursor-pointer transition-all duration-300 w-full mb-0.5 rounded-xl mx-2 max-w-[calc(100%-16px)]",
           isActive 
-            ? "bg-blue-50/60 border-blue-500 shadow-[inset_0px_0px_10px_rgba(59,130,246,0.05)]" 
-            : "border-transparent hover:bg-gray-50 hover:translate-x-0.5"
+            ? "bg-blue-600 shadow-lg shadow-blue-200" 
+            : "hover:bg-gray-100/80 active:scale-[0.98]"
         )}
       >
+        {/* Avatar Section */}
         <div className="relative flex-shrink-0">
-          <Avatar className="h-13 w-13 border-[1.5px] border-white shadow-sm">
+          <Avatar className={cn(
+            "h-12 w-12 border-2 transition-all shadow-sm",
+            isActive ? "border-blue-400" : "border-white"
+          )}>
             <AvatarImage src={info.avatar} className="object-cover" />
-            <AvatarFallback className="bg-gradient-to-tr from-slate-200 to-slate-300 text-slate-600 font-bold">
+            <AvatarFallback className="bg-slate-200 text-slate-600 font-bold">
               {info.name?.[0]?.toUpperCase()}
             </AvatarFallback>
           </Avatar>
           
           {info.unread > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white ring-2 ring-white shadow-md">
+            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white">
               {info.unread > 9 ? "9+" : info.unread}
             </span>
           )}
         </div>
 
-        <div className="flex-1 min-w-0 pr-2">
-          <div className="flex justify-between items-center mb-0.5">
+        {/* Content Section */}
+        <div className="flex-1 min-w-0">
+          <div className="flex justify-between items-center gap-1">
             <h4 className={cn(
-                "text-[14.5px] font-semibold truncate",
-                isActive ? "text-blue-600" : "text-gray-900"
+                "text-[14.5px] font-bold truncate transition-colors",
+                isActive ? "text-white" : "text-gray-900"
             )}>
               {info.name}
             </h4>
-            <span className={cn(
-                "text-[11px] whitespace-nowrap ml-2",
-                info.unread > 0 ? "text-blue-600 font-bold" : "text-gray-400 font-medium"
-            )}>
-              {info.time}
-            </span>
+            
+            {/* Time / Dropdown Container */}
+            <div className="relative flex items-center justify-end w-14 h-5 flex-shrink-0">
+              {/* Time - Sẽ mờ đi khi hover */}
+              <span className={cn(
+                  "text-[11px] font-medium transition-all duration-200 group-hover:opacity-0",
+                  isActive ? "text-blue-100" : (info.unread > 0 ? "text-blue-600 font-bold" : "text-gray-400")
+              )}>
+                {info.time}
+              </span>
+
+              {/* More Button - Hiện ra khi hover đúng vị trí của Time */}
+              <div className="absolute inset-0 flex justify-end items-center opacity-0 group-hover:opacity-100 transition-all duration-200 transform translate-x-2 group-hover:translate-x-0">
+                <DropdownMenu modal={false}>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      onClick={(e) => e.stopPropagation()}
+                      className={cn(
+                        "p-1 rounded-full transition-colors",
+                        isActive ? "hover:bg-blue-500 text-white" : "hover:bg-gray-200 text-gray-500"
+                      )}
+                    >
+                      <MoreHorizontal size={18} />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-44 p-1 shadow-xl rounded-xl border-gray-100">
+                    {conversation.type === "group" && (
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setOpenAddMember(true)
+                        }}
+                        className="rounded-lg py-2 cursor-pointer gap-2"
+                      >
+                        <UserPlus size={15} className="text-blue-500" />
+                        <span className="text-sm font-medium">Thêm thành viên</span>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem
+                      onClick={handleDelete}
+                      className="text-red-600 focus:text-red-700 focus:bg-red-50 rounded-lg py-2 cursor-pointer gap-2"
+                    >
+                      <Trash2 size={15} />
+                      <span className="text-sm font-medium">Xóa hội thoại</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
           </div>
 
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center">
             <p className={cn(
-                "text-[13px] truncate",
-                info.unread > 0 ? "font-bold text-gray-900" : "text-gray-500"
+                "text-[13px] truncate transition-colors",
+                isActive ? "text-blue-50" : (info.unread > 0 ? "font-bold text-gray-900" : "text-gray-500")
             )}>
               {info.lastMsg}
             </p>
-            
-            {/* Tick xanh nếu đã đọc và không có tin nhắn mới */}
-            {info.unread === 0 && (
-                <CheckCheck size={14} className="text-blue-400 flex-shrink-0" />
-            )}
           </div>
-        </div>
-
-        {/* Dropdown Action - Hiển thị khi hover */}
-        <div className="absolute right-3 opacity-0 group-hover:opacity-100 transition-all duration-150">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                onClick={(e) => e.stopPropagation()}
-                className="p-1.5 hover:bg-white rounded-full border bg-white/80 shadow-sm text-gray-500"
-              >
-                <MoreHorizontal size={16} />
-              </button>
-            </DropdownMenuTrigger>
-
-            <DropdownMenuContent align="end" className="w-48 p-1 shadow-xl border-gray-100 rounded-xl">
-              {conversation.type === "group" && (
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setOpenAddMember(true)
-                  }}
-                  className="rounded-lg py-2 cursor-pointer"
-                >
-                  <UserPlus size={15} className="mr-2 text-blue-500" />
-                  <span>Thêm thành viên</span>
-                </DropdownMenuItem>
-              )}
-
-              <DropdownMenuItem
-                onClick={handleDelete}
-                className="text-red-600 focus:text-red-700 focus:bg-red-50 rounded-lg py-2 cursor-pointer"
-              >
-                <Trash2 size={15} className="mr-2" />
-                <span>Xóa hội thoại</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </div>
 

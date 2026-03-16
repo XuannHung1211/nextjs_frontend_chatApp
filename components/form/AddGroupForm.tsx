@@ -1,13 +1,27 @@
 "use client"
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
-import axios from "axios"
-import { Search, UserPlus2, Check } from "lucide-react" // Thêm Check icon
-import { useGroupStore } from "@/store/useGroupStore"
 import { useState } from "react"
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle 
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useGroupStore } from "@/store/useGroupStore"
+import { useChatStore } from "@/store/useChatStore"
+import axios from "axios"
+import { 
+  Search, 
+  Users2, 
+  Check, 
+  Loader2, 
+  Sparkles, 
+  User 
+} from "lucide-react"
 import { toast } from "sonner"
 
 interface AddGroupFormProps {
@@ -22,127 +36,208 @@ interface FormCreateGroup {
 
 export default function AddGroupForm({ open, onClose }: AddGroupFormProps) {
   const { friends, setFriends } = useGroupStore()
-  const [keyword, setKeyword] = useState("")
+  const currentUserId = useChatStore(s => s.currentUserId) // Lấy ID bản thân
   
-  // Khởi tạo object mặc định để không bị lỗi 'undefined'
+  const [keyword, setKeyword] = useState("")
   const [form, setForm] = useState<FormCreateGroup>({
     name: "",
     userIds: []
   })
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSearching, setIsSearching] = useState(false)
 
-  // Hàm Toggle: Nếu có ID thì xóa, chưa có thì thêm
   const handleToggleUser = (_id: string) => {
     setForm(prev => {
       const isSelected = prev.userIds.includes(_id);
       return {
         ...prev,
         userIds: isSelected 
-          ? prev.userIds.filter(id => id !== _id) // Xóa khỏi mảng
-          : [...prev.userIds, _id]                // Thêm vào mảng
+          ? prev.userIds.filter(id => id !== _id)
+          : [...prev.userIds, _id]
       };
     });
   }
 
-  const [isLoading, setIsLoading] = useState(false);
-
-const handleCreateGroup = async () => {
-  if (!form.name.trim() || form.userIds.length === 0) {
-    toast.error("Vui lòng điền đủ thông tin!");
-    return;
-  }
-
-  setIsLoading(true);
-  try {
-    const res = await axios.post("http://localhost:5001/api/group/create", form, {
-      withCredentials: true
-    });
-    
-    if (res.status === 201) {
-      toast.success("Tạo nhóm thành công!");
-      setForm({ name: "", userIds: [] }); // Reset form
-      onClose(); // ĐÓNG DIALOG NGAY LẬP TỨC
+  const handleCreateGroup = async () => {
+    if (!form.name.trim() || form.userIds.length === 0) {
+      toast.error("Vui lòng nhập tên nhóm và chọn ít nhất 1 thành viên!");
+      return;
     }
-  } catch (error: any) {
-    console.error("Lỗi tạo nhóm:", error);
-    toast.error(error.response?.data?.message || "Không thể tạo nhóm");
-  } finally {
-    setIsLoading(false);
+
+    setIsLoading(true);
+    try {
+      const res = await axios.post("http://localhost:5001/api/group/create", form, {
+        withCredentials: true
+      });
+      
+      if (res.status === 201) {
+        toast.success("Tạo nhóm thành công!");
+        setForm({ name: "", userIds: [] });
+        onClose();
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Không thể tạo nhóm");
+    } finally {
+      setIsLoading(false);
+    }
   }
-}
 
   const handleGetListFriend = async () => {
-    const res = await axios.get(`http://localhost:5001/api/users/search?keyword=${keyword}`, {
-      withCredentials: true
-    })
-    if (res.status === 200 || res.status === 201) {
-      setFriends(res?.data)
+    if (!keyword.trim()) return;
+    setIsSearching(true)
+    try {
+      const res = await axios.get(`http://localhost:5001/api/users/search?keyword=${keyword}`, {
+        withCredentials: true
+      })
+      if (res.status === 200 || res.status === 201) {
+        // Lọc bỏ chính mình khỏi danh sách chọn thành viên
+        const filtered = res.data.filter((u: any) => u._id !== currentUserId)
+        setFriends(filtered)
+      }
+    } finally {
+      setIsSearching(false)
     }
   }
 
   return (
     <Dialog open={open} onOpenChange={(value) => !value && onClose()}>
-      <DialogContent className="sm:max-w-md rounded-2xl">
-        <DialogHeader>
-          <DialogTitle className="text-lg font-semibold">Create New Group</DialogTitle>
-        </DialogHeader>
+      {/* Ẩn nút X mặc định hoặc đổi màu nút X mặc định sang trắng */}
+      <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden border-none shadow-2xl rounded-[32px] bg-white [&>button]:text-white/80 [&>button]:hover:text-white [&>button]:top-6 [&>button]:right-6">
+        
+        {/* --- HEADER --- */}
+        <div className="bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-500 p-8 text-white relative">
+          <div className="absolute top-4 right-12 opacity-10 animate-pulse">
+            <Sparkles size={60} />
+          </div>
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-extrabold flex items-center gap-3 tracking-tight">
+              <div className="p-2 bg-white/20 rounded-xl backdrop-blur-md">
+                <Users2 className="w-6 h-6" />
+              </div>
+              Tạo nhóm mới
+            </DialogTitle>
+            <p className="text-indigo-50 text-sm font-medium opacity-90 mt-2">
+              Bắt đầu cuộc trò chuyện chung với bạn bè.
+            </p>
+          </DialogHeader>
+        </div>
 
-        <div className="space-y-4 mt-2">
-          {/* Group Name */}
+        <div className="p-6 space-y-6">
+          {/* Nhập tên nhóm */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Group Name</label>
+            <label className="text-[12px] font-bold text-gray-400 ml-1 uppercase tracking-[1px]">
+              Tên nhóm
+            </label>
             <Input 
-              placeholder="Enter group name..." 
+              placeholder="Nhập tên nhóm của bạn..." 
+              className="h-12 border-none bg-gray-50 rounded-2xl focus-visible:ring-2 focus-visible:ring-purple-500/20 transition-all text-base shadow-inner"
               value={form.name}
               onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
             />
           </div>
 
-          {/* Search & List */}
-          <div className="space-y-4 mt-2 w-full">
-            <div className="flex items-center w-full gap-2.5">
-              <Input
-                placeholder="Search friends..."
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleGetListFriend()}
-              />
-              <Button variant="outline" size="icon" onClick={handleGetListFriend}>
-                <Search className="h-4 w-4" />
+          {/* Tìm kiếm & Thành viên */}
+          <div className="space-y-3">
+            <div className="flex justify-between items-end mb-1 px-1">
+              <label className="text-[12px] font-bold text-gray-400 uppercase tracking-[1px]">
+                Chọn thành viên
+              </label>
+              <span className="text-[12px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-lg">
+                Đã chọn: {form.userIds.length}
+              </span>
+            </div>
+            
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                  placeholder="Tìm bạn bè..."
+                  className="pl-11 h-11 bg-gray-50 border-none rounded-xl focus-visible:ring-2 focus-visible:ring-purple-500/20 transition-all"
+                  value={keyword}
+                  onChange={(e) => setKeyword(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleGetListFriend()}
+                />
+              </div>
+              <Button 
+                variant="secondary" 
+                className="h-11 rounded-xl px-5 bg-purple-600 text-white hover:bg-purple-700 transition-all active:scale-95 shadow-md shadow-purple-100"
+                onClick={handleGetListFriend}
+                disabled={isSearching}
+              >
+                {isSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : "Tìm"}
               </Button>
             </div>
 
-            <div className="flex flex-col gap-1 w-full max-h-56 overflow-y-scroll scrollbar-none border rounded-lg p-2">
-              {friends?.length > 0 ? (
-                friends.map((f: any) => {
-                  const isSelected = form.userIds.includes(f._id);
-                  return (
-                    <div 
-                      key={f._id} 
-                      className={`flex items-center justify-between p-2 rounded-md transition-colors ${isSelected ? "bg-primary/10 border-primary/20 border" : "hover:bg-gray-100 border border-transparent"}`}
-                    >
-                      <span className="text-sm font-medium">{f.displayName || "No Name"}</span>
-                      <Button
-                        size="sm"
-                        variant={isSelected ? "default" : "secondary"}
+            {/* Danh sách bạn bè để chọn */}
+            <ScrollArea className="h-60 w-full rounded-[20px] border border-gray-100 bg-gray-50/30 p-2">
+              <div className="space-y-1.5">
+                {friends?.length > 0 ? (
+                  friends.map((f: any) => {
+                    const isSelected = form.userIds.includes(f._id);
+                    return (
+                      <div 
+                        key={f._id} 
                         onClick={() => handleToggleUser(f._id)}
+                        className={`group flex items-center justify-between p-3 rounded-2xl cursor-pointer transition-all duration-200 ${
+                          isSelected 
+                            ? "bg-white border-purple-200 shadow-sm border ring-1 ring-purple-100" 
+                            : "hover:bg-white border border-transparent hover:shadow-sm"
+                        }`}
                       >
-                        {isSelected ? <Check className="h-4 w-4" /> : <UserPlus2 className="h-4 w-4" />}
-                        <span className="ml-1">{isSelected ? "Selected" : "Add"}</span>
-                      </Button>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="text-center text-sm text-gray-500 py-4">No friends found.</div>
-              )}
-            </div>
+                        <div className="flex items-center gap-3 min-w-0">
+                          <Avatar className="h-10 w-10 border-2 border-white shadow-sm transition-transform group-hover:scale-105">
+                            <AvatarImage src={f.avatarUrl} className="object-cover" />
+                            <AvatarFallback className="bg-indigo-100 text-indigo-700 font-bold text-xs">
+                              {f.displayName?.charAt(0).toUpperCase() || <User size={16}/>}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex flex-col min-w-0">
+                            <span className={`text-sm font-bold truncate ${isSelected ? "text-purple-700" : "text-slate-700"}`}>
+                              {f.displayName || "Người dùng"}
+                            </span>
+                            <span className="text-[11px] text-slate-400 font-medium truncate">
+                              @{f.username || "unknown"}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className={`transition-all duration-300 ${isSelected ? "scale-100 opacity-100" : "scale-50 opacity-0 group-hover:opacity-30"}`}>
+                          <div className={`p-1.5 rounded-full ${isSelected ? "bg-purple-600" : "bg-slate-300"}`}>
+                            <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-16 text-slate-300 space-y-2">
+                    <Users2 className="w-10 h-10 opacity-10" />
+                    <p className="text-[11px] font-bold uppercase tracking-widest opacity-40">Tìm kiếm bạn bè để thêm</p>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
           </div>
 
-          {/* Actions */}
-          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={onClose}>Cancel</Button>
-            <Button onClick={handleCreateGroup} disabled={isLoading || form.userIds.length === 0}>
-              {isLoading ? "Creating..." : `Create Group (${form.userIds.length})`}
+          {/* Footer Actions */}
+          <div className="flex items-center gap-3 pt-2">
+            <Button 
+              variant="ghost" 
+              onClick={onClose}
+              className="flex-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-2xl h-12 font-bold"
+            >
+              Hủy
+            </Button>
+            <Button 
+              onClick={handleCreateGroup} 
+              disabled={isLoading || form.userIds.length === 0}
+              className="flex-[2] bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-2xl h-12 shadow-lg shadow-purple-200 transition-all active:scale-95 disabled:opacity-50 font-bold"
+            >
+              {isLoading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                `Tạo nhóm (${form.userIds.length})`
+              )}
             </Button>
           </div>
         </div>
