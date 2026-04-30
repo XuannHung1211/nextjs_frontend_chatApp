@@ -7,11 +7,17 @@ export function proxy(request: NextRequest) {
   const accessToken = request.cookies.get('accessToken')?.value
   const refreshToken = request.cookies.get('refreshToken')?.value
 
+  
+
   // CHỈ redirect khi MẤT CẢ HAI token
   // Nếu mất Access nhưng còn Refresh -> Cho qua để Client tự Refresh
-  if (!accessToken && refreshToken) {
-    return NextResponse.next(); 
-  }
+  if (accessToken) {
+  return NextResponse.next();
+}
+
+if (!accessToken && refreshToken) {
+  return NextResponse.next();
+}
 
   // Chỉ khi mất cả hai mới đá ra signin
   if (!accessToken && !refreshToken) {

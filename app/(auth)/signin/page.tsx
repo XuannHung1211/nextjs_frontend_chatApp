@@ -41,7 +41,7 @@ const SignInPage = () => {
             console.log("Đăng nhập thành công")
             toast.success("Đăng nhập thành công")
                 setTimeout(() => {
-                router.replace("/")
+                window.location.href = '/'
                 }, 500)
 
         } catch (error) {
