@@ -41,7 +41,7 @@ const SignInPage = () => {
             console.log("Đăng nhập thành công")
             toast.success("Đăng nhập thành công")
                 setTimeout(() => {
-                window.location.href = '/'
+               router.replace('/')
                 }, 500)
 
         } catch (error) {
@@ -50,7 +50,11 @@ const SignInPage = () => {
         }
     }
 
-    const handleSubmit = async () => {
+
+
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
         try {
             await LogIn()
         } catch (error) {
@@ -75,7 +79,7 @@ const SignInPage = () => {
                     </CardAction>
                 </CardHeader>
                 <CardContent>
-                    <form>
+                    <form onSubmit={handleSubmit}>
                         <div className="flex flex-col gap-6">
                             <div className="grid gap-2">
                                 <Label htmlFor="username">Username</Label>
@@ -115,7 +119,6 @@ const SignInPage = () => {
                     <Button 
                     type="submit" 
                     className="w-full"
-                    onClick={handleSubmit}
                     >
                         Login
                     </Button>
