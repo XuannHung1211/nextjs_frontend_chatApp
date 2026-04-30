@@ -147,16 +147,16 @@ const ChatCard = ({ conversationId }: { conversationId: string }) => {
     }))
 
     try {
-      const res = await axiosClient.get(`http://localhost:5001/api/message/${conversationId}`, { withCredentials: true })
+      const res = await axiosClient.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/message/${conversationId}`, { withCredentials: true })
       setMessages(conversationId, res.data)
-      await axiosClient.patch(`http://localhost:5001/api/message/${conversationId}/read`, {}, { withCredentials: true })
+      await axiosClient.patch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/message/${conversationId}/read`, {}, { withCredentials: true })
     } catch (err) { console.error("Error:", err) }
   }
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation() // Quan trọng: không kích hoạt handleClick của card cha
     try {
-      await axiosClient.delete(`http://localhost:5001/api/conversation/${conversationId}`, { withCredentials: true })
+      await axiosClient.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/conversation/${conversationId}`, { withCredentials: true })
       toast.success("Đã xóa hội thoại")
       removeConversation(conversationId)
     } catch {
@@ -180,7 +180,7 @@ const ChatCard = ({ conversationId }: { conversationId: string }) => {
         {/* AVATAR KHÔNG CO GIÃN */}
         <div className="relative flex-shrink-0">
           <Avatar className="h-12 w-12 border border-slate-100 shadow-sm">
-            <AvatarImage src={"http://localhost:5001" + info?.avatar} className="object-cover" />
+            <AvatarImage src={`${process.env.NEXT_PUBLIC_BACKEND_URL}`+ info?.avatar} className="object-cover" />
             <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white font-medium">
               {info?.name?.[0]?.toUpperCase()}
             </AvatarFallback>

@@ -67,7 +67,7 @@ export default function AddGroupForm({ open, onClose }: AddGroupFormProps) {
 
     setIsLoading(true);
     try {
-      const res = await axiosClient.post("http://localhost:5001/api/group", form, {
+      const res = await axiosClient.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/group`, form, {
         withCredentials: true
       });
 
@@ -87,7 +87,7 @@ export default function AddGroupForm({ open, onClose }: AddGroupFormProps) {
     if (!keyword.trim()) return;
     setIsSearching(true)
     try {
-      const res = await axiosClient.get(`http://localhost:5001/api/users/search?keyword=${keyword}`, {
+      const res = await axiosClient.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/search?keyword=${keyword}`, {
         withCredentials: true
       })
       if (res.status === 200 || res.status === 201) {
@@ -189,7 +189,7 @@ export default function AddGroupForm({ open, onClose }: AddGroupFormProps) {
                             <AvatarImage
                               src={
                                 f.avatarUrl
-                                  ? (f.avatarUrl.startsWith("http") ? f.avatarUrl : `http://localhost:5001${f.avatarUrl}`)
+                                  ? (f.avatarUrl.startsWith("http") ? f.avatarUrl : `${process.env.NEXT_PUBLIC_BACKEND_URL}${f.avatarURL}`)
                                   : ""
                               }
                               className="object-cover"

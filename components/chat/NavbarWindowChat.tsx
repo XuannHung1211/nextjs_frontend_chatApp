@@ -60,7 +60,7 @@ const NavbarWindowChat = () => {
       <div className="flex items-center gap-4 group cursor-pointer">
         <div className="relative">
           <Avatar className="h-11 w-11 border-2 border-white shadow-sm transition-transform group-hover:scale-105">
-            <AvatarImage src={"http://localhost:5001" +displayInfo.avatar} className="object-cover" />
+            <AvatarImage src={`${process.env.NEXT_PUBLIC_BACKEND_URL}` +displayInfo.avatar} className="object-cover" />
             <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white font-medium">
               {displayInfo.name?.[0]?.toUpperCase()}
             </AvatarFallback>

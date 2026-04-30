@@ -25,7 +25,7 @@ export function NavUser({ user: initialUser }: Props) {
   const router = useRouter()
   
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const BACKEND_URL = "http://localhost:5001"
+  const BACKEND_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}`
 
   const handleLogout = async () => {
     try {
@@ -69,7 +69,7 @@ export function NavUser({ user: initialUser }: Props) {
 
   const avatarSrc = user.avatarUrl?.startsWith("http") 
     ? user.avatarUrl 
-    : `${BACKEND_URL}${user.avatarUrl}`
+    : `${BACKEND_URL}${user.avatarURL}`
 
   return (
     <>

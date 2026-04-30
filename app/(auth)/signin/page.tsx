@@ -32,7 +32,7 @@ const SignInPage = () => {
 
     const LogIn = async () => {
         try {
-            const res = await axiosClient.post("http://localhost:5001/api/auth/signin" , {
+            const res = await axiosClient.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/signin` , {
                 username , 
                 password
             }, { withCredentials: true })

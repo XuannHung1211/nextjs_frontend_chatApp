@@ -53,9 +53,9 @@ const ChatAppPage = () => {
       try {
 
         const [directRes, groupRes, userRes] = await Promise.all([
-          axiosClient.get("http://localhost:5001/api/direct", { withCredentials: true }),
-          axiosClient.get("http://localhost:5001/api/group", { withCredentials: true }),
-          axiosClient.get("http://localhost:5001/api/users/me", { withCredentials: true })
+          axiosClient.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/direct`, { withCredentials: true }),
+          axiosClient.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/group`, { withCredentials: true }),
+          axiosClient.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/me`, { withCredentials: true })
         ])
 
 
@@ -94,7 +94,7 @@ const ChatAppPage = () => {
       try {
 
         const res = await axiosClient.get(
-          "http://localhost:5001/api/friend/request",
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/friend/request`,
           { withCredentials: true }
         )
 
@@ -116,7 +116,7 @@ const ChatAppPage = () => {
     try {
 
       await axiosClient.post(
-        `http://localhost:5001/api/friend/request/${requestId}/accept`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/friend/request/${requestId}/accept`,
         {},
         { withCredentials: true }
       )
@@ -126,7 +126,7 @@ const ChatAppPage = () => {
 
       // 🔥 fetch lại DIRECT (vì có chat mới)
       const directRes = await axiosClient.get(
-        "http://localhost:5001/api/direct",
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/direct`,
         { withCredentials: true }
       )
 
@@ -154,7 +154,7 @@ const ChatAppPage = () => {
     try {
 
       await axiosClient.post(
-        `http://localhost:5001/api/friend/request/${requestId}/decline`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/friend/request/${requestId}/decline`,
         {},
         { withCredentials: true }
       )

@@ -30,7 +30,7 @@ const AddMemberModal = ({ conversationId, open, onClose }: { conversationId: str
 
       try {
         setLoadingSearch(true)
-        const res = await axiosClient.get(`http://localhost:5001/api/users/search`, {
+        const res = await axiosClient.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/search`, {
           params: { keyword: keyword },
           withCredentials: true
         })
@@ -49,7 +49,7 @@ const AddMemberModal = ({ conversationId, open, onClose }: { conversationId: str
   const handleAddMember = async (userId: string) => {
     try {
       const res = await axiosClient.patch(
-        `http://localhost:5001/api/group/${conversationId}/add`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/group/${conversationId}/add`,
         { conversationId, userId },
         { withCredentials: true }
       )

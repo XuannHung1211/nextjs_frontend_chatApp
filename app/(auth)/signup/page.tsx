@@ -23,7 +23,7 @@ const SignUpPage = () => {
     const router = useRouter()
     const RegisterUser = async () => {
         try {
-           const res = await axiosClient.post("http://localhost:5001/api/auth/signup" , {
+           const res = await axiosClient.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/signup` , {
                 username , 
                 password , 
                 firstName,

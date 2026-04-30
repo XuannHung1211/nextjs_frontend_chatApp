@@ -79,7 +79,7 @@ const GroupInfoView = ({ conversation, currentUserId }: any) => {
   const handleUpdateGroup = async () => {
     try {
       setIsUpdating(true);
-      await axiosClient.patch(`http://localhost:5001/api/group/${conversation._id}`,
+      await axiosClient.patch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/group/${conversation._id}`,
         { name: newName , conversationId:conversation._id}, { withCredentials: true }
       );
       toast.success("Cập nhật nhóm thành công");
@@ -99,7 +99,7 @@ const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
   try {
     toast.loading("Đang tải ảnh lên...");
     const res = await axiosClient.patch(
-      `http://localhost:5001/api/group/${conversation._id}/avatar`, 
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/group/${conversation._id}/avatar`, 
       formData, 
       { withCredentials: true }
     );
@@ -126,7 +126,7 @@ const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (val.length < 2) return;
     try {
       setIsSearching(true);
-      const res = await axiosClient.get(`http://localhost:5001/api/users/search?keyword=${val}`, { withCredentials: true });
+      const res = await axiosClient.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/search?keyword=${val}`, { withCredentials: true });
       setSearchResults(res.data);
     } catch (err) { console.error(err); }
     finally { setIsSearching(false); }
@@ -134,7 +134,7 @@ const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
 
   const handleAddMember = async (targetUserId: string) => {
     try {
-      await axiosClient.patch(`http://localhost:5001/api/group/${conversation._id}/add`, { userId: targetUserId , conversationId:conversation._id}, { withCredentials: true });
+      await axiosClient.patch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/group/${conversation._id}/add`, { userId: targetUserId , conversationId:conversation._id}, { withCredentials: true });
       toast.success("Đã thêm vào nhóm");
     } catch (err: any) { toast.error(err.response?.data?.message || "Lỗi khi thêm"); }
   };
@@ -142,7 +142,7 @@ const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
   // 3. RỜI NHÓM
   const handleLeaveGroup = async () => {
     try {
-      await axiosClient.patch(`http://localhost:5001/api/group/${conversation._id}/remove`, { userId:user._id, conversationId:conversation._id}, { withCredentials: true });
+      await axiosClient.patch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/group/${conversation._id}/remove`, { userId:user._id, conversationId:conversation._id}, { withCredentials: true });
       toast.success("Đã rời khỏi nhóm");
       useChatStore.setState({ activeConversationId: null });
     } catch (err) { toast.error("Không thể rời nhóm"); }
@@ -151,7 +151,7 @@ const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
   // 4. XÓA THÀNH VIÊN
   const handleRemoveMember = async (memberId: string) => {
     try {
-      await axiosClient.patch(`http://localhost:5001/api/group/${conversation._id}/remove`, { userId:memberId, conversationId:conversation._id }, { withCredentials: true });
+      await axiosClient.patch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/group/${conversation._id}/remove`, { userId:memberId, conversationId:conversation._id }, { withCredentials: true });
       toast.success("Đã xóa thành viên");
       // Update store logic...
     } catch (err) { toast.error("Lỗi khi xóa"); }
@@ -163,7 +163,7 @@ const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
       <div className="flex flex-col items-center py-4 mb-6 border-b w-full group relative">
         <div className="relative">
           <Avatar className="h-20 w-20 mb-3 border-2 border-white shadow-lg">
-            <AvatarImage src={`http://localhost:5001${conversation.avatar}`} className="object-cover" />
+            <AvatarImage src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${conversation.avatar}`} className="object-cover" />
             <AvatarFallback className="bg-blue-500 text-white font-bold text-2xl">{conversation.name?.[0]}</AvatarFallback>
           </Avatar>
           {isOwner && (
@@ -191,7 +191,7 @@ const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
             return (
               <div key={member._id} className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50">
                 <div className="flex items-center gap-3">
-                  <Avatar className="h-8 w-8"><AvatarImage src={`http://localhost:5001${member.avatarUrl}`} /></Avatar>
+                  <Avatar className="h-8 w-8"><AvatarImage src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${member.avatarURL}`} /></Avatar>
                   <span className="text-sm font-medium">{member.displayName} {isMe && "(Bạn)"}</span>
                 </div>
 
@@ -238,7 +238,7 @@ const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
                     {isSearching ? <Loader2 className="animate-spin mx-auto" /> : searchResults.map((u: any) => (
                       <div key={u._id} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg">
                         <div className="flex items-center gap-2">
-                          <Avatar className="h-7 w-7"><AvatarImage src={`http://localhost:5001${u.avatarUrl}`} /></Avatar>
+                          <Avatar className="h-7 w-7"><AvatarImage src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${u.avatarURL}`} /></Avatar>
                           <span className="text-xs font-semibold">{u.displayName}</span>
                         </div>
                         <Button size="sm" variant="ghost" className="h-7 px-2 text-blue-600" onClick={() => handleAddMember(u._id)}><UserPlus size={14} /></Button>
@@ -304,7 +304,7 @@ const DirectInfoView = ({ conversation, user, currentUserId }: any) => {
     const action = isBlockedByMe ? "unblock" : "block";
     try {
       // ✅ SỬA: URL khớp với directRouter.js (/api/direct/:id/block hoặc unblock)
-      await axiosClient.patch(`http://localhost:5001/api/direct/${conversation._id}/${action}`, {}, { withCredentials: true });
+      await axiosClient.patch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/direct/${conversation._id}/${action}`, {}, { withCredentials: true });
 
       toast.success(isBlockedByMe ? "Đã bỏ chặn" : "Đã chặn người dùng");
 
@@ -328,7 +328,7 @@ const DirectInfoView = ({ conversation, user, currentUserId }: any) => {
     <div className="flex flex-col p-6">
       <div className="flex flex-col items-center py-6 mb-6 border-b w-full">
         <Avatar className="h-24 w-24 mb-4 border-2 border-white shadow-xl">
-          <AvatarImage src={`http://localhost:5001${user?.avatarUrl}`} className="object-cover" />
+          <AvatarImage src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${user?.avatarURL}`} className="object-cover" />
           <AvatarFallback className="bg-slate-200 text-slate-500 text-3xl font-bold">{user?.displayName?.[0]}</AvatarFallback>
         </Avatar>
         <h2 className="text-xl font-bold text-slate-900">{user?.displayName}</h2>

@@ -17,7 +17,7 @@ interface EditProfileFormProps {
 export default function EditProfileForm({ onSuccess }: EditProfileFormProps) {
   const { user, setUser } = useUserStore()
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const BACKEND_URL = "http://localhost:5001"
+  const BACKEND_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}`
 
   const nameParts = user?.displayName?.split(" ") || []
   const [firstName, setFirstName] = useState(nameParts[0] || "")
@@ -26,7 +26,7 @@ export default function EditProfileForm({ onSuccess }: EditProfileFormProps) {
   const [avatar, setAvatar] = useState<File | null>(null)
   
   const initialPreview = user?.avatarUrl 
-    ? (user.avatarUrl.startsWith("http") ? user.avatarUrl : `${BACKEND_URL}${user.avatarUrl}`)
+    ? (user.avatarUrl.startsWith("http") ? user.avatarUrl : `${BACKEND_URL}${user.avatarURL}`)
     : null
     
   const [preview, setPreview] = useState<string | null>(initialPreview)

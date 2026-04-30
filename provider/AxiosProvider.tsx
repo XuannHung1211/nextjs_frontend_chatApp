@@ -20,7 +20,7 @@ export default function AxiosInterceptor() {
 
           try {
             // TỰ ĐỘNG GỌI REFRESH
-            await axios.post("http://localhost:5001/api/auth/refresh-token");
+            await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/refresh-token`);
             
             // Nếu refresh xong, thực hiện lại request vừa bị lỗi
             return axios(originalRequest);

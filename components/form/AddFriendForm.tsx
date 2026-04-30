@@ -52,7 +52,7 @@ export default function AddFriendForm({ open, onClose }: AddFriendFormProps) {
     setLoading(true)
     try {
       const res = await axiosClient.get(
-        `http://localhost:5001/api/users/search?keyword=${keyword}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/search?keyword=${keyword}`,
         { withCredentials: true }
       )
 
@@ -70,7 +70,7 @@ export default function AddFriendForm({ open, onClose }: AddFriendFormProps) {
   const handleSendFriendRequest = async (id: string) => {
     try {
       const res = await axiosClient.post(
-        "http://localhost:5001/api/friend/request",
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/friend/request`,
         { to: id, message: "Kết bạn nhé!" },
         { withCredentials: true }
       )
@@ -162,7 +162,7 @@ export default function AddFriendForm({ open, onClose }: AddFriendFormProps) {
                         <AvatarImage
                           src={
                             user.avatarUrl
-                              ? (user.avatarUrl.startsWith("http") ? user.avatarUrl : `http://localhost:5001${user.avatarUrl}`)
+                              ? (user.avatarUrl.startsWith("http") ? user.avatarUrl : `${process.env.NEXT_PUBLIC_BACKEND_URL}${user.avatarURL}`)
                               : ""
                           }
                           className="object-cover"

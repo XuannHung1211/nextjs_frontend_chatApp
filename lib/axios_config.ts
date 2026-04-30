@@ -3,7 +3,7 @@ import axios from "axios";
 
 // 1. Khởi tạo một instance riêng để không ảnh hưởng đến thư viện gốc
 const axiosClient = axios.create({
-  baseURL: "http://localhost:5001", 
+  baseURL: `${process.env.NEXT_PUBLIC_BACKEND_URL}`, 
   withCredentials: true, // Bắt buộc để luôn gửi Cookie
 });
 
@@ -25,7 +25,7 @@ axiosClient.interceptors.response.use(
 
       try {
         // Tự động gọi API Refresh (dùng luôn axiosClient hoặc axios gốc đều được)
-        await axios.post("http://localhost:5001/api/auth/refresh-token", {}, {
+        await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/refresh-token`, {}, {
             withCredentials: true 
         });
 

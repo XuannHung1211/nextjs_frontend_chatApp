@@ -86,8 +86,8 @@ const handleClickSendMessage = async () => {
 
     try {
       const api = currentConversation.type === "group"
-        ? "http://localhost:5001/api/message/group"
-        : "http://localhost:5001/api/message/direct"
+        ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/message/group`
+        : `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/message/direct`
 
       await axiosClient.post(
         api,
