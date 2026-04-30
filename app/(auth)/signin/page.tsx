@@ -40,7 +40,9 @@ const SignInPage = () => {
 
             console.log("Đăng nhập thành công")
             toast.success("Đăng nhập thành công")
-            router.replace("/")
+                setTimeout(() => {
+                router.replace("/")
+                }, 500)
 
         } catch (error) {
             console.log("Lỗi đăng nhập" , error)
