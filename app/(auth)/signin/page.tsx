@@ -16,12 +16,15 @@ import axiosClient from "@/lib/axios_config"
 import Link from "next/link"
 import { useState } from "react"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 const SignInPage = () => {
 
     const [username, setUserName] = useState("")
     const [password, setPassword] = useState("")
     const [loading, setLoading] = useState(false)
+
+    const router = useRouter()
 
     const LogIn = async () => {
         setLoading(true)
@@ -34,7 +37,7 @@ const SignInPage = () => {
 
             toast.success("Đăng nhập thành công")
 
-            window.location.href = "/"
+            router.push("/")
 
         } catch (error) {
             toast.error("Sai tài khoản hoặc mật khẩu")
