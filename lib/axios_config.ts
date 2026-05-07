@@ -36,76 +36,34 @@ axiosClient.interceptors.request.use(
 // RESPONSE INTERCEPTOR
 // Auto Refresh Token
 // =========================
-axiosClient.interceptors.response.use(
+axiosClient.interceptors.request.use(
 
-  (response) => response,
+  (config) => {
 
-  async (error) => {
+    const token =
+      localStorage.getItem(
+        "accessToken"
+      );
 
-    const originalRequest = error.config;
+    const isAuthRoute =
 
-    if (
+      config.url?.includes("/signin") ||
 
-      error.response?.status === 401 &&
+      config.url?.includes("/signup") ||
 
-      !originalRequest._retry &&
+      config.url?.includes("/refresh-token");
 
-      !originalRequest.url.includes("/signin") &&
+    // CHỈ gắn token khi KHÔNG phải auth route
+    if (token && !isAuthRoute) {
 
-      !originalRequest.url.includes("/signup") &&
-
-      !originalRequest.url.includes("/refresh-token")
-
-    ) {
-
-      originalRequest._retry = true;
-
-      try {
-
-        const response = await axios.post(
-
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/refresh-token`,
-
-          {},
-
-          {
-            withCredentials: true
-          }
-        );
-
-        const newAccessToken =
-          response.data.accessToken;
-
-        localStorage.setItem(
-          "accessToken",
-          newAccessToken
-        );
-
-        originalRequest.headers.Authorization =
-          `Bearer ${newAccessToken}`;
-
-        return axiosClient(originalRequest);
-
-      } catch (refreshError) {
-
-        localStorage.removeItem(
-          "accessToken"
-        );
-
-        if (
-          window.location.pathname !==
-          "/signin"
-        ) {
-
-          window.location.href =
-            "/signin";
-        }
-
-        return Promise.reject(
-          refreshError
-        );
-      }
+      config.headers.Authorization =
+        `Bearer ${token}`;
     }
+
+    return config;
+  },
+
+  (error) => {
 
     return Promise.reject(error);
   }
