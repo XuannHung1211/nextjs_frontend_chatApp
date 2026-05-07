@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
 import axiosClient from "@/lib/axios_config"
 
 export default function AuthGuard({
@@ -10,10 +9,11 @@ export default function AuthGuard({
   children: React.ReactNode
 }) {
 
-  const router = useRouter()
-
   const [loading, setLoading] =
     useState(true)
+
+  const [authorized, setAuthorized] =
+    useState(false)
 
   useEffect(() => {
 
@@ -29,11 +29,15 @@ export default function AuthGuard({
             }
           )
 
+          setAuthorized(true)
+
+        } catch {
+
+          window.location.href =
+            "/signin"
+        } finally {
+
           setLoading(false)
-
-        } catch (error) {
-
-          router.push("/signin")
         }
       }
 
@@ -43,11 +47,12 @@ export default function AuthGuard({
 
   if (loading) {
 
-    return (
-      <div>
-        Loading...
-      </div>
-    )
+    return <div>Loading...</div>
+  }
+
+  if (!authorized) {
+
+    return null
   }
 
   return children

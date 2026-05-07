@@ -34,9 +34,9 @@ export default function RootLayout({
         <Toaster/>
         <AxiosInterceptor/>
         <SocketProvider>
-          <AuthGuard>
+          
           {children}
-          </AuthGuard>
+         
         </SocketProvider>
         
         
