@@ -47,7 +47,7 @@ export default function AuthGuard({
 
   if (loading) {
 
-    return <div>Loading...</div>
+    return <div>Loading...    </div>
   }
 
   if (!authorized) {
