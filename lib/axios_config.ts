@@ -53,7 +53,7 @@ axiosClient.interceptors.request.use(
 
       config.url?.includes("/refresh-token");
 
-    // CHỈ gắn token khi KHÔNG phải auth route
+    // Chỉ attach Bearer cho API protected
     if (token && !isAuthRoute) {
 
       config.headers.Authorization =
@@ -68,5 +68,4 @@ axiosClient.interceptors.request.use(
     return Promise.reject(error);
   }
 );
-
 export default axiosClient;

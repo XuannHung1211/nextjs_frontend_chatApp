@@ -26,37 +26,41 @@ const SignInPage = () => {
 
     const router = useRouter()
 
-   const LogIn = async () => {
-    setLoading(true)
+    const LogIn = async () => {
+        setLoading(true)
 
-    try {
+        try {
 
-        const response = await axiosClient.post(
-            `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/signin`,
-            { username, password },
-            { withCredentials: true }
-        )
+            localStorage.removeItem(
+                "accessToken"
+            );
 
-        console.log(response.data)
-        
-        const accessToken = response.data.accessToken
+            const response = await axiosClient.post(
+                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/signin`,
+                { username, password },
+                { withCredentials: true }
+            )
 
-        localStorage.setItem("accessToken", accessToken)
+            console.log(response.data)
 
-        toast.success("Đăng nhập thành công")
+            const accessToken = response.data.accessToken
 
-        window.location.replace("/")
+            localStorage.setItem("accessToken", accessToken)
 
-    } catch (error) {
+            toast.success("Đăng nhập thành công")
 
-        toast.error("Sai tài khoản hoặc mật khẩu")
+            window.location.replace("/")
 
-    } finally {
+        } catch (error) {
 
-        setLoading(false)
+            toast.error("Sai tài khoản hoặc mật khẩu")
 
+        } finally {
+
+            setLoading(false)
+
+        }
     }
-}
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -66,7 +70,7 @@ const SignInPage = () => {
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
             <Card className="w-full max-w-sm shadow-lg rounded-2xl">
-                
+
                 <CardHeader className="space-y-2 text-center">
                     <CardTitle className="text-2xl font-bold">
                         Đăng nhập
