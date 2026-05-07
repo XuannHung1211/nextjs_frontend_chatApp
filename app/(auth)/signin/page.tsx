@@ -30,39 +30,36 @@ const SignInPage = () => {
         setLoading(true)
 
         try {
-
-            localStorage.removeItem(
-                "accessToken"
-            );
-
+            // Với HttpOnly Cookie, chúng ta không cần chạm vào localStorage
+            // Trình duyệt sẽ tự xử lý việc ghi đè cookie mới từ Backend gửi về
+            
             const response = await axiosClient.post(
                 `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/signin`,
                 { username, password },
-                { withCredentials: true }
+                { 
+                    withCredentials: true // BẮT BUỘC: Để trình duyệt cho phép BE set cookie
+                }
             )
 
-            console.log(response.data)
+            console.log("Phản hồi từ server:", response.data)
 
-            const accessToken = response.data.accessToken
-
-            localStorage.setItem("accessToken", accessToken)
+            // Lưu ý: Không còn dùng localStorage.setItem("accessToken", ...)
+            // Vì accessToken giờ nằm trong HttpOnly Cookie mà JS không đọc được.
 
             toast.success("Đăng nhập thành công")
 
             setTimeout(() => {
-
                 router.push("/")
-
+                // Refresh để đảm bảo các Server Components/Layout nhận diện được Cookie mới
+                router.refresh() 
             }, 200)
 
-        } catch (error) {
-
-            toast.error("Sai tài khoản hoặc mật khẩu")
-
+        } catch (error: any) {
+            console.error("Lỗi đăng nhập:", error)
+            const errorMsg = error.response?.data?.message || "Sai tài khoản hoặc mật khẩu"
+            toast.error(errorMsg)
         } finally {
-
             setLoading(false)
-
         }
     }
 
