@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import SocketProvider from "@/provider/SocketProvider";
 import AxiosInterceptor from "@/provider/AxiosProvider";
+import AuthGuard from "@/components/chat/AuthGuard";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,7 +34,9 @@ export default function RootLayout({
         <Toaster/>
         <AxiosInterceptor/>
         <SocketProvider>
+          <AuthGuard>
           {children}
+          </AuthGuard>
         </SocketProvider>
         
         
