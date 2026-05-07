@@ -26,25 +26,37 @@ const SignInPage = () => {
 
     const router = useRouter()
 
-    const LogIn = async () => {
-        setLoading(true)
-        try {
-            await axiosClient.post(
-                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/signin`,
-                { username, password },
-                { withCredentials: true }
-            )
+   const LogIn = async () => {
+    setLoading(true)
 
-            toast.success("Đăng nhập thành công")
+    try {
 
-            window.location.replace("/")
+        const response = await axiosClient.post(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/signin`,
+            { username, password },
+            { withCredentials: true }
+        )
 
-        } catch (error) {
-            toast.error("Sai tài khoản hoặc mật khẩu")
-        } finally {
-            setLoading(false)
-        }
+        console.log(response.data)
+        
+        const accessToken = response.data.accessToken
+
+        localStorage.setItem("accessToken", accessToken)
+
+        toast.success("Đăng nhập thành công")
+
+        window.location.replace("/")
+
+    } catch (error) {
+
+        toast.error("Sai tài khoản hoặc mật khẩu")
+
+    } finally {
+
+        setLoading(false)
+
     }
+}
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()

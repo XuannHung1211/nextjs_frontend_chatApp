@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 // PHẢI đổi tên từ 'proxy' thành 'middleware'
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const accessToken = request.cookies.get('accessToken')?.value
   const refreshToken = request.cookies.get('refreshToken')?.value
+  console.log("aceess" ,accessToken ,"ref" , refreshToken)
   const { pathname } = request.nextUrl
 
   // 1. Nếu đã có token (đã đăng nhập) mà người dùng cố vào /signin hoặc /signup
