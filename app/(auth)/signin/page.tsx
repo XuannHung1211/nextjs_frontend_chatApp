@@ -49,7 +49,11 @@ const SignInPage = () => {
 
             toast.success("Đăng nhập thành công")
 
-            window.location.replace("/")
+            setTimeout(() => {
+
+                router.push("/")
+
+            }, 200)
 
         } catch (error) {
 
