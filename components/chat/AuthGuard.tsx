@@ -3,57 +3,24 @@
 import { useEffect, useState } from "react"
 import axiosClient from "@/lib/axios_config"
 
-export default function AuthGuard({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-
-  const [loading, setLoading] =
-    useState(true)
-
-  const [authorized, setAuthorized] =
-    useState(false)
+export default function AuthGuard({ children }: { children: React.ReactNode }) {
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-
-    const checkAuth =
-      async () => {
-
-        try {
-
-          await axiosClient.get(
-            "/api/users/me",
-            {
-              withCredentials: true
-            }
-          )
-
-          setAuthorized(true)
-
-        } catch {
-
-          window.location.href =
-            "/signin"
-        } finally {
-
-          setLoading(false)
-        }
+    const check = async () => {
+      try {
+        await axiosClient.get("/api/users/me")
+      } catch {
+        // middleware đã xử lý redirect rồi
+      } finally {
+        setLoading(false)
       }
+    }
 
-    checkAuth()
-
+    check()
   }, [])
 
-  if (loading) {
+  if (loading) return <div>Loading...</div>
 
-    return <div>Loading...    </div>
-  }
-
-  if (!authorized) {
-
-    return null
-  }
-
-  return children
+  return <>{children}</>
 }
